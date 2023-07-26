@@ -8,7 +8,7 @@
 #include <bits/stl_stack.h>
 #include <set>
 #include <cfloat>
-
+#include <vector>
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <cstdlib>
@@ -152,34 +152,34 @@ void tracePath(cell cellDetails[][COL], Pair dest)
 // A Function to find the shortest path between
 // a given source cell to a destination cell according
 // to A* Search Algorithm
-void aStarSearch(Pair src, Pair dest)
+int aStarSearch(Pair src, Pair dest)
 {
 	// If the source is out of range
 	if (isValid(src.first, src.second) == false)
 	{
 		printf("Source is invalid\n");
-		return;
+		return 0;
 	}
 
 	// If the destination is out of range
 	if (isValid(dest.first, dest.second) == false)
 	{
 		printf("Destination is invalid\n");
-		return;
+		return 1;
 	}
 
 	// Either the source or the destination is blocked
 	if (isUnBlocked(src.first, src.second) == false || isUnBlocked(dest.first, dest.second) == false)
 	{
 		printf("Source or the destination is blocked\n");
-		return;
+		return 2;
 	}
 
 	// If the destination cell is the same as source cell
 	if (isDestination(src.first, src.second, dest) == true)
 	{
 		printf("We are already at the destination\n");
-		return;
+		return 3;
 	}
 
 	// Create a closed list and initialise it to false which
@@ -283,7 +283,7 @@ void aStarSearch(Pair src, Pair dest)
 				printf("The destination cell is found\n");
 				tracePath(cellDetails, dest);
 				foundDest = true;
-				return;
+				return 5;
 			}
 			// If the successor is already on the closed
 			// list or if it is blocked, then ignore it.
@@ -332,7 +332,7 @@ void aStarSearch(Pair src, Pair dest)
 				printf("The destination cell is found\n");
 				tracePath(cellDetails, dest);
 				foundDest = true;
-				return;
+				return 5;
 			}
 			// If the successor is already on the closed
 			// list or if it is blocked, then ignore it.
@@ -380,7 +380,7 @@ void aStarSearch(Pair src, Pair dest)
 				printf("The destination cell is found\n");
 				tracePath(cellDetails, dest);
 				foundDest = true;
-				return;
+				return 5;
 			}
 
 			// If the successor is already on the closed
@@ -430,7 +430,7 @@ void aStarSearch(Pair src, Pair dest)
 				printf("The destination cell is found\n");
 				tracePath(cellDetails, dest);
 				foundDest = true;
-				return;
+				return 5;
 			}
 
 			// If the successor is already on the closed
@@ -677,7 +677,7 @@ void aStarSearch(Pair src, Pair dest)
 	if (foundDest == false)
 		printf("Failed to find the Destination Cell\n");
 
-	return;
+	return 9;
 }
 
 std::stack<Pair> reverseStack(std::stack<Pair> inputStack)
@@ -751,6 +751,7 @@ int WinMain()
 	Pair src;
 	Pair dest;
 	std::stack<int> moves;
+	std::vector<std::pair<int, int>> tail;
 	// Source is the left-most bottom-most corner
 	src = make_pair(7, 2);
 	// Destination is the left-most top-most corner
@@ -764,58 +765,68 @@ int WinMain()
 			{
 				quit = true;
 			}
+		}
 
-			// // Destination is the left-most top-most corner
-			// dest = make_pair(std::rand() % 8, std::rand() % 8);
-			// if (isUnBlocked(dest.first, dest.second))
-			// 	dest = make_pair(dest.first-1, dest.second-1);
+		// // Destination is the left-most top-most corner
+		// dest = make_pair(std::rand() % 8, std::rand() % 8);
+		// if (isUnBlocked(dest.first, dest.second))
+		// 	dest = make_pair(dest.first-1, dest.second-1);
 
-			SDL_Rect rect = {20 * dest.first + 1, 20 * dest.second + 1, 20 - 2, 20 - 2};
-			SDL_SetRenderDrawColor(renderer, 100, 20, 70, 255); // Set the line color to red
-			SDL_RenderFillRect(renderer, &rect);
-			aStarSearch(src, dest);
+		SDL_Rect rect = {20 * dest.first + 1, 20 * dest.second + 1, 20 - 2, 20 - 2};
+		SDL_SetRenderDrawColor(renderer, 100, 20, 70, 255); // Set the line color to red
+		SDL_RenderFillRect(renderer, &rect);
+		int f = aStarSearch(src, dest);
 
-			cord = reverseStack(cord);
-			pair<int, int> m;
-			int i = 0;
-			while (!cord.empty())
+		cord = reverseStack(cord);
+		pair<int, int> m;
+		int i = 0;
+		while (!cord.empty())
+		{
+			pair<int, int> p = cord.top();
+			printf("(%d, %d)\n", p.first, p.second);
+			cord.pop();
+
+			// clear tail
+			if (i > 0)
 			{
-				pair<int, int> p = cord.top();
-				printf("(%d, %d)\n", p.first, p.second);
-				cord.pop();
+				SDL_Rect rect = {20 * m.first + 1, 20 * m.second + 1, 20 - 2, 20 - 2};
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Set the line color to red
+				SDL_RenderFillRect(renderer, &rect);
+			}
 
-				// clear tail
-				if (i > 0)
-				{
-					SDL_Rect rect = {20 * m.first + 1, 20 * m.second + 1, 20 - 2, 20 - 2};
-					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Set the line color to red
-					SDL_RenderFillRect(renderer, &rect);
-				}
+			// // Draw a rectangle
+			SDL_Rect rect = {20 * p.first + 1, 20 * p.second + 1, 20 - 2, 20 - 2};
+			SDL_SetRenderDrawColor(renderer, 142, 42, 44, 255); // Set the line color to red
+			SDL_RenderFillRect(renderer, &rect);
 
+			for (const auto &p : tail)
+			{
 				// // Draw a rectangle
 				SDL_Rect rect = {20 * p.first + 1, 20 * p.second + 1, 20 - 2, 20 - 2};
 				SDL_SetRenderDrawColor(renderer, 142, 42, 44, 255); // Set the line color to red
 				SDL_RenderFillRect(renderer, &rect);
-
-				// Update the screen
-				SDL_RenderPresent(renderer);
-				_sleep(100);
-				m = p;
-				++i;
 			}
 
-			while (!der.empty())
-			{
-				der.pop();
-			}
-			src = dest;
-			dest.first = (std::rand() % 8);
-			dest.second = (std::rand() % 8);
-			printf("\n");
-
-			
-			
+			// Update the screen
+			SDL_RenderPresent(renderer);
+			_sleep(100);
+			m = p;
+			++i;
 		}
+
+		while (!der.empty())
+		{
+			der.pop();
+		}
+
+		if (f == 5)
+		{
+			tail.push_back(std::make_pair(dest.first, dest.second));
+		}
+		src = dest;
+		dest.first = (std::rand() % 8);
+		dest.second = (std::rand() % 8);
+		printf("\n");
 	}
 	// Clean up and quit
 	SDL_DestroyRenderer(renderer);
@@ -824,5 +835,5 @@ int WinMain()
 	return 0;
 }
 
-
+// token = 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
 // token = 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
